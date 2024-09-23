@@ -6,12 +6,16 @@ import { Employee } from "../../../backend/entities/Employee";
 import { validate } from "class-validator";
 import { logError } from "../../../backend/utils/logger";
 import { initializeDataSource } from '../../../backend/utils/data-source-helper';
+import cors, { runMiddleware } from '../../../backend/utils/cors-middleware';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
 
     // Ensure that the data source is initialized
     await initializeDataSource();
+    
+    // Apply CORS middleware
+    await runMiddleware(req, res, cors);
     
     if (req.method === "POST") {
       const { name, email, password, position } = req.body;

@@ -3,8 +3,13 @@ import { NextApiResponse } from "next";
 import { logError } from "../../backend/utils/logger";
 import { verifyToken } from "./jwt";
 import { CustomNextApiRequest } from '../types'; // Import the custom request type
+import cors, { runMiddleware } from '../../backend/utils/cors-middleware';
 
 export const verifyJwt = (handler: any) => async (req: CustomNextApiRequest, res: NextApiResponse) => {
+    
+  // Apply CORS middleware
+  await runMiddleware(req, res, cors);
+
   const token = req.headers.authorization?.split(" ")[1];
   if (!token) {
     return res.status(401).json({ message: "No token provided" });

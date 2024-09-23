@@ -6,6 +6,8 @@ import { logError } from "../../../backend/utils/logger";
 import { verifyJwt } from '../../../backend/utils/verifyToken';
 import { initializeDataSource } from '../../../backend/utils/data-source-helper';
 import { CustomNextApiRequest } from '../../../backend/types'; // Import the custom request type
+import cors, { runMiddleware } from '../../../backend/utils/cors-middleware';
+import { validate } from "class-validator";
 
 const handler = async (req: CustomNextApiRequest, res: NextApiResponse) => {
   try {
@@ -13,13 +15,17 @@ const handler = async (req: CustomNextApiRequest, res: NextApiResponse) => {
     // Ensure that the data source is initialized
     await initializeDataSource();
 
+    // Apply CORS middleware
+    await runMiddleware(req, res, cors);
+
     const { id } = req.query;
     const employeeRepository = AppDataSource.getRepository(Employee);
 
     if (req.method === "PUT") {
       const { name, email, position, isActive } = req.body;
       const employee = await employeeRepository.findOne({
-        where: { id: Number(id) }
+        where: { id: Number(id) },
+        select: ['id', 'name', 'email', 'position', 'isActive', 'role', 'password'], 
       });
 
       if (!employee) {
@@ -30,6 +36,11 @@ const handler = async (req: CustomNextApiRequest, res: NextApiResponse) => {
       employee.email = email || employee.email;
       employee.position = position || employee.position;
       employee.isActive = isActive !== undefined ? isActive : employee.isActive;
+
+      const errors = await validate(employee);
+      if (errors.length > 0) {
+        return res.status(400).json({ errors });
+      }
 
       await employeeRepository.save(employee);
       res.status(200).json(employee);

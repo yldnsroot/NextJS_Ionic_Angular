@@ -7,12 +7,16 @@ import bcrypt from "bcryptjs";
 import { verifyJwt } from '../../../backend/utils/verifyToken';
 import { initializeDataSource } from '../../../backend/utils/data-source-helper';
 import { CustomNextApiRequest } from '../../../backend/types'; // Import the custom request type
+import cors, { runMiddleware } from '../../../backend/utils/cors-middleware';
 
 const handler = async (req: CustomNextApiRequest, res: NextApiResponse) => {
   try {
 
     // Ensure that the data source is initialized
     await initializeDataSource();
+    
+    // Apply CORS middleware
+    await runMiddleware(req, res, cors);
 
     const employeeRepository = AppDataSource.getRepository(Employee);
 
@@ -20,7 +24,7 @@ const handler = async (req: CustomNextApiRequest, res: NextApiResponse) => {
 
       // Get pagination parameters from query, with defaults
       const page = parseInt(req.query.page as string) || 1; // Default to page 1
-      const limit = parseInt(req.query.limit as string) || 20; // Default to 20 records per page
+      const limit = parseInt(req.query.limit as string) || 5; // Default to 5 records per page
       const skip = (page - 1) * limit;
 
       const [employees, total] = await employeeRepository.findAndCount({        

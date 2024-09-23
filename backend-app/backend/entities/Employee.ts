@@ -15,12 +15,12 @@ export class Employee {
   @IsEmail({}, { message: "Invalid email" })
   email: string;
 
-  @Column({ select: false }) // Password will not be selected by default
+  @Column({ nullable: true, select: false }) // Password will not be selected by default
   @IsNotEmpty({ message: "Password is required" })
   @MinLength(8, { message: "Password must be at least 8 characters" })
-  @Matches(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/, {
-    message: "Password must contain both letters and numbers",
-  })
+  // @Matches(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/, {
+  //   message: "Password must contain both letters and numbers",
+  // })
   password: string;
 
   @Column()
