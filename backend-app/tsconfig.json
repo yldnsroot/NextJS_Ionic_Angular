@@ -22,6 +22,7 @@
     },    
     "experimentalDecorators": true, // the key line    
     "strictPropertyInitialization": false,
+    "emitDecoratorMetadata": true,
     // "noImplicitAny": false,
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

@@ -3,6 +3,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import bcrypt from "bcryptjs";
 import { AppDataSource } from "../../../backend/data-source";
 import { Employee } from "../../../backend/entities/Employee";
+import { validate } from "class-validator";
 import { logError } from "../../../backend/utils/logger";
 
 AppDataSource.initialize();
@@ -23,6 +24,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         isActive: true,
         role: "User",
       });
+
+      const errors = await validate(newEmployee);
+      if (errors.length > 0) {
+        return res.status(400).json({ errors });
+      }
 
       await employeeRepository.save(newEmployee);
       res.status(201).json(newEmployee);

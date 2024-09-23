@@ -4,11 +4,17 @@ import { AppDataSource } from "../../../backend/data-source";
 import { Employee } from "../../../backend/entities/Employee";
 import { logError } from "../../../backend/utils/logger";
 import bcrypt from "bcryptjs";
+import { verifyJwt } from '../../../backend/utils/verifyToken';
+import { CustomNextApiRequest } from '../../../backend/types'; // Import the custom request type
 
-AppDataSource.initialize();
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+const handler = async (req: CustomNextApiRequest, res: NextApiResponse) => {
   try {
+    // Ensure TypeORM DataSource is initialized
+    if (!AppDataSource.isInitialized) {
+      await AppDataSource.initialize();
+    }
+  
+    // Handle API requests after initialization
     const employeeRepository = AppDataSource.getRepository(Employee);
 
     if (req.method === "GET") {
@@ -36,4 +42,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     logError(error);
     res.status(500).json({ message: "Internal Server Error" });
   }
-}
+};
+
+export default verifyJwt(handler); // Apply JWT middleware
