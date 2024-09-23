@@ -15,7 +15,7 @@ export class Employee {
   @IsEmail({}, { message: "Invalid email" })
   email: string;
 
-  @Column()
+  @Column({ select: false }) // Password will not be selected by default
   @IsNotEmpty({ message: "Password is required" })
   @MinLength(8, { message: "Password must be at least 8 characters" })
   @Matches(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/, {
@@ -33,10 +33,10 @@ export class Employee {
   @Column({ default: "User" })
   role: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, select: false }) // Token will not be selected by default
   resetToken: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, select: false }) // Token expiration will not be selected by default
   resetTokenExpires: Date;
 
   @Column({ nullable: true })

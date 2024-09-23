@@ -5,16 +5,22 @@ import { AppDataSource } from "../../../backend/data-source";
 import { Employee } from "../../../backend/entities/Employee";
 import { generateToken } from "../../../backend/utils/jwt";
 import { logError } from "../../../backend/utils/logger";
-
-AppDataSource.initialize();
+import { initializeDataSource } from '../../../backend/utils/data-source-helper';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
+
+    // Ensure that the data source is initialized
+    await initializeDataSource();
+
     if (req.method === "POST") {
       const { email, password } = req.body;
 
       const employeeRepository = AppDataSource.getRepository(Employee);
-      const employee = await employeeRepository.findOne({ where: { email } });
+      const employee = await employeeRepository.findOne({
+        where: { email },
+        select: ["id", "email", "password", "role"],
+      });
 
       if (!employee || !bcrypt.compareSync(password, employee.password)) {
         return res.status(400).json({ message: "Invalid email or password" });

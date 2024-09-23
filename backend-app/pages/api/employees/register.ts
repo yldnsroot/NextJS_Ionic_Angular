@@ -5,11 +5,14 @@ import { AppDataSource } from "../../../backend/data-source";
 import { Employee } from "../../../backend/entities/Employee";
 import { validate } from "class-validator";
 import { logError } from "../../../backend/utils/logger";
-
-AppDataSource.initialize();
+import { initializeDataSource } from '../../../backend/utils/data-source-helper';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
+
+    // Ensure that the data source is initialized
+    await initializeDataSource();
+    
     if (req.method === "POST") {
       const { name, email, password, position } = req.body;
 

@@ -1,5 +1,6 @@
 // backend/utils/jwt.ts
 import jwt, { JwtPayload } from 'jsonwebtoken';
+import { logError } from "../../backend/utils/logger";
 
 const SECRET_KEY = "aa2986181c4239f28872e3052d346c06cf8cf0c173c429b559ba8e5392f2cb6";
 
@@ -28,6 +29,7 @@ export const verifyToken = (token: string): UserJwtPayload | null => {
     }
     return null; // Return null if the token is invalid
   } catch (error) {
+    logError(error);
     return null; // In case of an error, return null
   }
 };

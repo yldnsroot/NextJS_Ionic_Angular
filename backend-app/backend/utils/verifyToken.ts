@@ -1,5 +1,6 @@
 // backend/utils/verifyToken.ts
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiResponse } from "next";
+import { logError } from "../../backend/utils/logger";
 import { verifyToken } from "./jwt";
 import { CustomNextApiRequest } from '../types'; // Import the custom request type
 
@@ -20,6 +21,7 @@ export const verifyJwt = (handler: any) => async (req: CustomNextApiRequest, res
       return res.status(401).json({ message: 'Invalid token' });
     }
   } catch (error) {
+    logError(error);
     return res.status(401).json({ message: "Invalid token" });
   }
 };
@@ -44,6 +46,7 @@ export const verifyRole = (handler: any, role: string) => async (req: CustomNext
       return res.status(401).json({ message: 'Invalid token' });
     }
   } catch (error) {
+    logError(error);
     return res.status(401).json({ message: "Invalid token" });
   }
 };
