@@ -1,4 +1,3 @@
-// pages/api/employees/[id].ts
 import { NextApiResponse } from "next";
 import { AppDataSource } from "../../../backend/data-source";
 import { Employee } from "../../../backend/entities/Employee";
@@ -8,10 +7,11 @@ import { initializeDataSource } from '../../../backend/utils/data-source-helper'
 import { CustomNextApiRequest } from '../../../backend/types'; // Import the custom request type
 import cors, { runMiddleware } from '../../../backend/utils/cors-middleware';
 import { validate } from "class-validator";
+import { UpdateEmployeeDto } from '../../../backend/dto/update-employee.dto'; // Import the Update DTO
+import { plainToClass } from 'class-transformer';
 
 const handler = async (req: CustomNextApiRequest, res: NextApiResponse) => {
   try {
-
     // Ensure that the data source is initialized
     await initializeDataSource();
 
@@ -22,26 +22,52 @@ const handler = async (req: CustomNextApiRequest, res: NextApiResponse) => {
     const employeeRepository = AppDataSource.getRepository(Employee);
 
     if (req.method === "PUT") {
-      const { name, email, position, isActive } = req.body;
       const employee = await employeeRepository.findOne({
         where: { id: Number(id) },
-        select: ['id', 'name', 'email', 'position', 'isActive', 'role', 'password'], 
+        select: ['id', 'name', 'email', 'position', 'isActive', 'role'], 
       });
 
       if (!employee) {
         return res.status(404).json({ message: "Employee not found" });
       }
 
-      employee.name = name || employee.name;
-      employee.email = email || employee.email;
-      employee.position = position || employee.position;
-      employee.isActive = isActive !== undefined ? isActive : employee.isActive;
+      // Transform incoming plain data into a DTO instance
+      const employeeDto = plainToClass(UpdateEmployeeDto, req.body);
 
-      const errors = await validate(employee);
-      if (errors.length > 0) {
-        return res.status(400).json({ errors });
+      // Validate the DTO
+      const validationErrors = await validate(employeeDto);
+      if (validationErrors.length > 0) {
+        const errorMessages = validationErrors
+          .map((error) => error.constraints ? Object.values(error.constraints) : [])
+          .flat();
+        return res.status(400).json({ message: "Validation failed", errors: errorMessages });
       }
 
+      // Update only the fields that are present in the DTO
+      employee.name = employeeDto.name ?? employee.name;
+      employee.email = employeeDto.email ?? employee.email;
+      employee.position = employeeDto.position ?? employee.position;
+      employee.isActive = employeeDto.isActive !== undefined ? employeeDto.isActive : employee.isActive;      
+
+      // Try to save the employee and catch unique constraint errors
+      try {
+        await employeeRepository.save(employee);
+        res.status(201).json(employee);
+      } catch (error) {
+        // TypeScript narrowing for 'unknown' error type
+        if (error instanceof Error) {
+          const sqlError = error as any; // Cast the error to 'any' to check properties like 'number'
+          
+          // Check for MSSQL unique constraint violation error codes
+          if (sqlError.number === 2601 || sqlError.number === 2627) {
+            return res.status(400).json({ message: "Email already exists" });
+          }
+        }
+
+        throw error;  // Re-throw other errors for logging
+      }
+      
+      // Save the updated employee entity
       await employeeRepository.save(employee);
       res.status(200).json(employee);
     } else if (req.method === "DELETE") {

@@ -8,7 +8,7 @@ export const initializeDataSource = async () => {
       await AppDataSource.initialize();
       console.log('Data Source has been initialized!');
     } else {
-      console.log('Data Source is already initialized.');
+      // console.log('Data Source is already initialized.');
     }
   } catch (error) {
     logError(error);
