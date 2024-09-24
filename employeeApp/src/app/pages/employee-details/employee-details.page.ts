@@ -2,6 +2,9 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { EmployeeService } from '../../services/employee.service';
+import { catchError } from 'rxjs/operators';
+import { of } from 'rxjs'; // To return a fallback observable on error
+import { AlertController } from '@ionic/angular'; // For displaying alerts in Ionic
 
 @Component({
   selector: 'app-employee-details',
@@ -16,7 +19,8 @@ export class EmployeeDetailsPage implements OnInit {
   constructor(
     private employeeService: EmployeeService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private alertController: AlertController // Inject alert controller for error handling
   ) {}
 
   ngOnInit() {
@@ -28,23 +32,58 @@ export class EmployeeDetailsPage implements OnInit {
   }
 
   loadEmployee(id: string) {
-    this.employeeService.getEmployee(+id).subscribe((response) => {
-      this.employee = response;
-    });
+    this.employeeService.getEmployee(+id)
+      .pipe(
+        catchError(async (error) => {
+          await this.showAlert('Error', 'Failed to load employee details.');
+          return of(null); // Return an empty observable to avoid breaking the flow
+        })
+      )
+      .subscribe((response) => {
+        if (response) {
+          this.employee = response;
+        }
+      });
   }
 
-  // Save employee (either add or update)
   saveEmployee() {
     if (this.isNew) {
-      this.employeeService.addEmployee(this.employee).subscribe(() => {
-        // Navigate back to employee list after saving
-        this.router.navigate(['/employee-list']);
-      });
+      this.employeeService.addEmployee(this.employee)
+        .pipe(
+          catchError(async (error) => {
+            await this.showAlert('Error', 'Failed to add employee.');
+            return of(null); // Return an empty observable to avoid breaking the flow
+          })
+        )
+        .subscribe((response) => {
+          if (response) {
+            this.router.navigate(['/tabs/employee-list']);
+          }
+        });
     } else {
-      this.employeeService.updateEmployee(this.employee.id, this.employee).subscribe(() => {
-        // Navigate back to employee list after updating
-        this.router.navigate(['/employee-list']);
-      });
+      this.employeeService.updateEmployee(this.employee.id, this.employee)
+        .pipe(
+          catchError(async (error) => {
+            await this.showAlert('Error', 'Failed to update employee.');
+            return of(null); // Return an empty observable to avoid breaking the flow
+          })
+        )
+        .subscribe((response) => {
+          if (response) {
+            this.router.navigate(['/tabs/employee-list']);
+          }
+        });
     }
   }
+
+  // Show alert using Ionic's AlertController
+  async showAlert(header: string, message: string) {
+    const alert = await this.alertController.create({
+      header,
+      message,
+      buttons: ['OK']
+    });
+    await alert.present();
+  }
 }
+

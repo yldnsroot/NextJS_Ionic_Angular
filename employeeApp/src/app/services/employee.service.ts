@@ -27,6 +27,11 @@ export class EmployeeService {
     return this.http.post(this.apiUrl, employee);
   }
 
+  // Method to register a new employee
+  register(employee: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/register`, employee);
+  }
+
   // Update an employee by ID
   updateEmployee(id: number, employee: any): Observable<any> {
     return this.http.put(`${this.apiUrl}/${id}`, employee);

@@ -25,24 +25,44 @@ export class EmployeeListPage implements OnInit {
 
   // Load employees initially and during infinite scroll
   loadEmployees(event?: any) {
-    this.employeeService.getEmployees(this.page, this.limit).subscribe((response) => {
-      this.employees = [...this.employees, ...response.data]; // Append new data
-      this.loadedEmployees += response.data.length; // Update the number of loaded employees
-      this.totalEmployees = response.total; // Total number of employees from the server
+    this.employeeService.getEmployees(this.page, this.limit).subscribe(
+      (response) => {
+        this.employees = [...this.employees, ...response.data]; // Append new data
+        this.loadedEmployees += response.data.length; // Update the number of loaded employees
+        this.totalEmployees = response.total; // Total number of employees from the server
 
-      // Disable infinite scroll if all employees are loaded
-      if (this.loadedEmployees >= this.totalEmployees && event) {
-        event.target.disabled = true; // Disable infinite scroll when all data is loaded
+        // Calculate total pages based on the total number of employees and limit
+        this.totalPages = Math.ceil(this.totalEmployees / this.limit);
+        console.log('Total Pages:', this.totalPages);
+
+        // Disable infinite scroll if the last page is reached
+        if (this.page >= this.totalPages && event) {
+          console.log('Pages:', this.page);
+          // event.target.disabled = true; // Disable infinite scroll
+        }
+
+        // Complete the infinite scroll event (if present)
+        if (event) {
+          event.target.complete();
+        }
+      },
+      (error) => {
+        console.error('Error loading employees:', error);
+        if (event) {
+          event.target.complete(); // Ensure infinite scroll completes even on error
+        }
       }
-
-      event?.target?.complete(); // Complete the infinite scroll event
-    });
+    );
   }
 
   ionViewWillEnter() {
+    console.log('ionViewWillEnter called');
     // Reload employee data when returning to the list
+    this.totalEmployees = 0; // Total number of employees from the API
+    this.loadedEmployees = 0; // Number of employees loaded so far
     this.page = 1; // Reset the page count to load from the beginning
     this.employees = []; // Clear the existing employees list
+
     this.loadEmployees();
   }
 

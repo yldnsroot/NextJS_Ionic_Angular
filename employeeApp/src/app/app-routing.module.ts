@@ -3,10 +3,20 @@ import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { AuthGuard } from './guards/auth.guard'; // Import AuthGuard
 
 const routes: Routes = [
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
-  { path: 'login', loadChildren: () => import('./pages/login/login.module').then(m => m.LoginPageModule) },
-  { path: 'employee-list', loadChildren: () => import('./pages/employee-list/employee-list.module').then(m => m.EmployeeListPageModule), canActivate: [AuthGuard] },
-  { path: 'employee-details/:id', loadChildren: () => import('./pages/employee-details/employee-details.module').then(m => m.EmployeeDetailsPageModule), canActivate: [AuthGuard] },
+  {
+    path: '',
+    redirectTo: 'tabs',
+    pathMatch: 'full'
+  },
+  {
+    path: 'tabs',
+    loadChildren: () => import('./pages/tabs/tabs.module').then(m => m.TabsPageModule)
+  },
+  { path: '**', redirectTo: 'tabs' },   {
+    path: 'register',
+    loadChildren: () => import('./pages/register/register.module').then( m => m.RegisterPageModule)
+  }
+// Wildcard route to redirect unknown paths to the tabs
 ];
 
 @NgModule({

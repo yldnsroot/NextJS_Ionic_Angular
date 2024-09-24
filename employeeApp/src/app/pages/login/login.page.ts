@@ -18,7 +18,7 @@ export class LoginPage {
   login() {
     this.authService.login(this.email, this.password).subscribe(
       data => {
-        this.router.navigate(['/employee-list']); // Redirect to employee list after login
+        this.router.navigate(['/tabs/employee-list']); // Redirect to employee list after login
       },
       error => {
         this.errorMessage = 'Invalid credentials. Please try again.';
